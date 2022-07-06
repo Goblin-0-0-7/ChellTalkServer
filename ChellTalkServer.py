@@ -10,11 +10,10 @@ port = server_sock.getsockname()[1]
 uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 
 
-advertise_service( server_sock, "VoltMeterPiServer",
+advertise_service( server_sock, "ChellTalkServer",
                    service_id = uuid,
                    service_classes = [ uuid, SERIAL_PORT_CLASS ],
-                   profiles = [ SERIAL_PORT_PROFILE ] 
-#                   protocols = [ OBEX_UUID ] 
+                   profiles = [ SERIAL_PORT_PROFILE ]
                     )
 while True:
     if(connection == False):
@@ -23,17 +22,20 @@ while True:
         connection = True
         print("Accepted connection from ", client_info)
     try:
-        data = client_sock.recv(1024)
+        data = client_sock.recv(1024).decode("ASCII")
+        msg = "General Kenobi"
+        client_sock.send(msg)
         if (data == "disconnect"):
             print("Client wanted to disconnect")
             client_sock.close()
             connection = False
-        elif (data == "voltage"):
-            print(data)
+        elif (data == "b'new string'"):
+            client_sock.send(data)
+            print("here")
         else:
             print("RECEIVED: %s" % data)
-            client_sock.send("%s" % data)
-            print("SENT: %s" % data) 
+            #client_sock.send("%s" % data)
+            print("SENT: %s" % msg) 
     except IOError:
         print("Connection disconnected!")
         client_sock.close()
