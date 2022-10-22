@@ -1,9 +1,13 @@
 from bluetooth import *
+import pyautogui
+
+pag = pyautogui
 
 connection = False
 server_sock=BluetoothSocket( RFCOMM )
 server_sock.bind(("",PORT_ANY))
 server_sock.listen(1)
+
 
 port = server_sock.getsockname()[1]
 
@@ -29,10 +33,17 @@ while True:
             print("Client wanted to disconnect")
             client_sock.close()
             connection = False
-        elif (data == "b'new string'"):
-            client_sock.send(data)
-            print("here")
+        elif (data == "rightclick"):
+            pag.rightClick()
+        elif (data == "leftclick"):
+            pag.leftClick() 
+        # mit TAG unterscheiden
+        elif (data == "remove"):
+            pag.press("backspace")
+        elif (data == "space"):
+            pag.press("space")
         else:
+            pag.typewrite(data)
             print("RECEIVED: %s" % data)
             #client_sock.send("%s" % data)
             print("SENT: %s" % msg) 
