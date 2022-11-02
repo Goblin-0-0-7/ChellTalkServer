@@ -41,7 +41,8 @@ def set_red(value):
     elif value == "low":
         GPIO.output(PIN_RED, GPIO.LOW)
     else:
-        brightness = pwm_frequenzy *(value / 255)
+        brightness = 100 *(value / 255)
+        #brightness = pwm_frequenzy *(value / 255)
         pwm_red.ChangeDutyCycle(brightness)
 
 def set_blue(value):
@@ -51,7 +52,7 @@ def set_blue(value):
     elif value == "low":
         GPIO.output(PIN_BLUE, GPIO.LOW)
     else:
-        brightness = pwm_frequenzy *(value / 255)
+        brightness = 100 *(value / 255)
         pwm_blue.ChangeDutyCycle(brightness)
 
 def set_green(value):
@@ -61,7 +62,7 @@ def set_green(value):
     elif value == "low":
         GPIO.output(PIN_GREEN, GPIO.LOW)
     else:
-        brightness = pwm_frequenzy *(value / 255)
+        brightness = 100 *(value / 255)
         pwm_green.ChangeDutyCycle(brightness)
 
 def set_color(r,g,b):
@@ -82,14 +83,16 @@ while True:
             print("Client wanted to disconnect")
             client_sock.close()
             connection = False
+            set_color(0,0,0)
         else:
-            rgb_value = data.split(",")
-            set_color(rgb_value[0], rgb_value[1], rgb_value[2])
+            rgb_value = data.split(",",3)
+            set_color(int(rgb_value[0]), int(rgb_value[1]), int(rgb_value[2]))
             print("RECEIVED: %s" % data)
     except IOError:
         print("Connection disconnected!")
         client_sock.close()
         connection = False
+        set_color(0,0,0)
         pass
     except BluetoothError:
         print("Something wrong with bluetooth")
@@ -97,4 +100,7 @@ while True:
         print("\nDisconnected")
         client_sock.close()
         server_sock.close()
+        set_color(0,0,0)
+        GPIO.cleanup()
         break
+
