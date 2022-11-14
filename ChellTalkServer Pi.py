@@ -3,6 +3,13 @@ import  RPi.GPIO as GPIO
 import time
 from threading import Thread
 
+#changable variables (by user)
+fading_step = 3
+#default settings
+red, green, blue = [0,0,0]
+
+connection = False
+
 GPIO.setmode(GPIO.BCM)
 PIN_RED = 27
 PIN_GREEN = 22
@@ -21,7 +28,6 @@ pwm_red.start(0)
 pwm_blue.start(0)
 pwm_green.start(0)
 
-connection = False
 server_sock=BluetoothSocket( RFCOMM )
 server_sock.bind(("",PORT_ANY))
 server_sock.listen(1)
@@ -36,6 +42,13 @@ advertise_service( server_sock, "ChellTalkServer",
                    profiles = [ SERIAL_PORT_PROFILE ]
                     )
 
+def check_value(value):
+    if value > 255:
+        return 255
+    if value < 0:
+        return 0
+    return value
+
 def set_red(value):
     #value is ether "high", "low" or a number between 0-255
     if value == "high":
@@ -43,8 +56,8 @@ def set_red(value):
     elif value == "low":
         GPIO.output(PIN_RED, GPIO.LOW)
     else:
+        value = check_value(value)
         brightness = 100 *(value / 255)
-        #brightness = pwm_frequenzy *(value / 255)
         pwm_red.ChangeDutyCycle(brightness)
 
 def set_blue(value):
@@ -54,6 +67,7 @@ def set_blue(value):
     elif value == "low":
         GPIO.output(PIN_BLUE, GPIO.LOW)
     else:
+        value = check_value(value)
         brightness = 100 *(value / 255)
         pwm_blue.ChangeDutyCycle(brightness)
 
@@ -64,6 +78,7 @@ def set_green(value):
     elif value == "low":
         GPIO.output(PIN_GREEN, GPIO.LOW)
     else:
+        value = check_value(value)
         brightness = 100 *(value / 255)
         pwm_green.ChangeDutyCycle(brightness)
 
@@ -76,55 +91,110 @@ class Fading:
     
     def __init__(self):
         self._running = True
+        self.speed = 20
 
     def terminate(self):
         self._running = False
-
-    def fade_colors(self, speed: int =1):
+        
+    def change_speed(self, value):
+        self.speed = value
+    
+    def update_color(self, value):
+        if value > 255:
+            return 255
+        if value < 0:
+            return 0
+        return value
+        
+    def fade_colors(self):
+        red, green, blue = [255,0,0]
+        set_color(red, green, blue)
         while self._running:
-            print("Thread running")
-            time.sleep(5)
+            if red == 255 and blue == 0 and green < 255:
+                green = self.update_color(green + fading_step)
+                set_green(green)
+        
+            elif green == 255 and blue == 0 and red > 0:
+                red = self.update_color(red - fading_step)
+                set_red(red)
+            
+            elif red == 0 and green == 255 and blue < 255:
+                blue = self.update_color(blue + fading_step)
+                set_blue(blue)
+            
+            elif red == 0 and blue == 255 and green > 0:
+                green = self.update_color(green - fading_step)
+                set_green(green)
+            
+            elif green == 0 and blue == 255 and red < 255:
+                red = self.update_color(red + fading_step)
+                set_red(red)
+            
+            elif red == 255 and green == 0 and blue > 0:
+                blue = self.update_color(blue - fading_step)
+                set_blue(blue)
+            time.sleep(1/self.speed)
+            
+def open_socket(connection):
+    while True:
+        if(connection == False):
+            print("Waiting for connection on RFCOMM channel %d" % port)
+            client_sock, client_info = server_sock.accept()
+            connection = True
+            print("Accepted connection from ", client_info)
+        try:
+            data = client_sock.recv(1024).decode("ASCII")
 
-while True:
-    if(connection == False):
-        print("Waiting for connection on RFCOMM channel %d" % port)
-        client_sock, client_info = server_sock.accept()
-        connection = True
-        print("Accepted connection from ", client_info)
-    try:
-        data = client_sock.recv(1024).decode("ASCII")
-
-        if (data == "disconnect"):
-            print("Client wanted to disconnect")
+            if (data == "disconnect"):
+                print("Client wanted to disconnect")
+                client_sock.close()
+                connection = False
+                set_color(0,0,0)
+            elif ("-fade-" in data):
+                print("RECEIVED: %s" % data)
+                set_color(0,0,0)
+                fading = Fading()
+                fade_thread = Thread(target = fading.fade_colors, args =( ), daemon = True)
+                fade_thread.start()
+            elif ("-fadeSpeed-" in data):
+                print("RECEIVED: %s" % data)
+                msg = data.replace("-fadeSpeed-", "")
+                try:
+                    fading.change_speed(int(msg))
+                except:
+                    print("Couldn't change fading speed, fading probably not active.")
+            elif ("-black-" in data):
+                print("RECEIVED: %s" % data)
+                try:
+                    fading.terminate()
+                except:
+                    print("Fading could not be terminated.")
+                set_color(0,0,0)
+            elif ("-rgbCode-" in data):
+                print("RECEIVED: %s" % data)
+                msg = data.replace("-rgbCode-", "") #removing Tag
+                red, green, blue, miss_sent_data = msg.split(",",3)
+                set_color(int(red), int(green), int(blue))
+        except IOError:
+            print("Connection disconnected!")
             client_sock.close()
             connection = False
             set_color(0,0,0)
-        elif (data == "fade"):
-            print("RECEIVED: %s" % data)
-            fading = Fading()
-            fade_thread = Thread(target = fading.fade_colors, args =(True, ), daemon = True)
-            fade_thread.start()
-        elif (data == "black"):
-            print("RECEIVED: %s" % data)
-            fading.terminate()
+            pass
+        except BluetoothError:
+            print("Something wrong with bluetooth")
+        except KeyboardInterrupt:
+            print("\nDisconnected")
+            client_sock.close()
+            server_sock.close()
             set_color(0,0,0)
-        else:
-            rgb_value = data.split(",",3)
-            set_color(int(rgb_value[0]), int(rgb_value[1]), int(rgb_value[2]))
-            print("RECEIVED: %s" % data)
-    except IOError:
-        print("Connection disconnected!")
-        client_sock.close()
-        connection = False
-        set_color(0,0,0)
-        pass
-    except BluetoothError:
-        print("Something wrong with bluetooth")
-    except KeyboardInterrupt:
-        print("\nDisconnected")
-        client_sock.close()
-        server_sock.close()
-        set_color(0,0,0)
-        GPIO.cleanup()
-        break
+            GPIO.cleanup()
+            break
+    
+def main():
+    open_socket(connection)
+    exit()
+    
+if __name__ == "__main__":
+    main()
 
