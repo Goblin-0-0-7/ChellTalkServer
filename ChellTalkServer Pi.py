@@ -1,5 +1,7 @@
 from bluetooth import *
 import  RPi.GPIO as GPIO
+import time
+from threading import Thread
 
 GPIO.setmode(GPIO.BCM)
 PIN_RED = 27
@@ -69,6 +71,19 @@ def set_color(r,g,b):
     set_red(r)
     set_green(g)
     set_blue(b)
+    
+class Fading:
+    
+    def __init__(self):
+        self._running = True
+
+    def terminate(self):
+        self._running = False
+
+    def fade_colors(self, speed: int =1):
+        while self._running:
+            print("Thread running")
+            time.sleep(5)
 
 while True:
     if(connection == False):
@@ -83,6 +98,15 @@ while True:
             print("Client wanted to disconnect")
             client_sock.close()
             connection = False
+            set_color(0,0,0)
+        elif (data == "fade"):
+            print("RECEIVED: %s" % data)
+            fading = Fading()
+            fade_thread = Thread(target = fading.fade_colors, args =(True, ), daemon = True)
+            fade_thread.start()
+        elif (data == "black"):
+            print("RECEIVED: %s" % data)
+            fading.terminate()
             set_color(0,0,0)
         else:
             rgb_value = data.split(",",3)
