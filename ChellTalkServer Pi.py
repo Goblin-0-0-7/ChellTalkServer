@@ -2,6 +2,7 @@ from bluetooth import *
 import  RPi.GPIO as GPIO
 import time
 from threading import Thread
+import datetime
 
 #changable variables (by user)
 fading_step = 3
@@ -134,7 +135,42 @@ class Fading:
                 blue = self.update_color(blue - fading_step)
                 set_blue(blue)
             time.sleep(1/self.speed)
-            
+    
+class AlarmClock:
+
+    def __init__(self):
+        self._running = True
+        #load all saved Alarms os.walk (Title-AlarmTitle)
+        #create Alarm objs
+
+    def terminate(self):
+        self._running = False
+    
+    def new_alarm(self):
+        ...
+        #create new alarm file and load it
+
+    def load_alarm(self):
+        ...
+
+    def run(self):
+        while self._running:
+            now = datetime.now()
+
+            current_hour = now.strftime("%I")
+            current_min = now.strftime("%M")
+            current_sec = now.strftime("%S")
+            current_period = now.strftime("%p")
+            #interate throught alarm objs
+            if alarm_period == current_period:
+                if alarm_hour == current_hour:
+                    if alarm_min == current_min:
+                        if alarm_sec == current_sec:
+                            print("Wake Up!")
+                            playsound('D:/Library/Documents/Projects/Coding/Beginner Python Projects/Alarm Clock/alarm.wav')
+                            break
+
+
 def open_socket(connection):
     while True:
         if(connection == False):
@@ -173,7 +209,7 @@ def open_socket(connection):
             elif ("-rgbCode-" in data):
                 print("RECEIVED: %s" % data)
                 msg = data.replace("-rgbCode-", "") #removing Tag
-                red, green, blue, miss_sent_data = msg.split(",",3)
+                red, green, blue, __ = msg.split(",",3)
                 set_color(int(red), int(green), int(blue))
         except IOError:
             print("Connection disconnected!")

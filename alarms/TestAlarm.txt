@@ -1,0 +1,4 @@
+date-next occurrence (update after alarm goes off)
+    with HH, MM, SS
+array-weekly reminder [d,d,d,d,d,d,d] d=True for on d=False for off
+alarmtype (sound, lightshow (own class))
