@@ -1,4 +1,13 @@
 date-next occurrence (update after alarm goes off)
     with HH, MM, SS
-array-weekly reminder [d,d,d,d,d,d,d] d=True for on d=False for off
-alarmtype (sound, lightshow (own class))
+array-weekly reminder [0-6] zahl gibt tag an
+alarmtype (sound, lightshow (own classes, like Fading))
+
+alarmclass:
+attribute
+save to json
+go off (new thread)
+
+alarm clock:
+new alarm by loading json
+organises alarm obj

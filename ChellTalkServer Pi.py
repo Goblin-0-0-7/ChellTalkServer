@@ -2,7 +2,10 @@ from bluetooth import *
 import  RPi.GPIO as GPIO
 import time
 from threading import Thread
-import datetime
+from datetime import datetime
+
+#own Classes
+import Alarm
 
 #changable variables (by user)
 fading_step = 3
@@ -140,15 +143,18 @@ class AlarmClock:
 
     def __init__(self):
         self._running = True
+        self.alarm_list = []
         #load all saved Alarms os.walk (Title-AlarmTitle)
         #create Alarm objs
 
     def terminate(self):
         self._running = False
     
-    def new_alarm(self):
-        ...
-        #create new alarm file and load it
+    def new_alarm(self, title, alarm_time, alarm_date =None, alarm_repetition =None, sound =None, lightshow =None):
+        new = Alarm()
+        self.alarm_list.apppend(new)
+        #create new alarm file and save it
+        #if no alarm_date then today
 
     def load_alarm(self):
         ...
