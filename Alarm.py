@@ -1,6 +1,6 @@
 import json
 
-class Alarm(dict):
+class Alarm():
 
     def __init__(self, title, alarm_date, alarm_time, alarm_repetition =None, soundfile =None, lightshow =None):
         self._running = False
