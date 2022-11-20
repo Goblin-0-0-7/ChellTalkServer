@@ -185,8 +185,8 @@ def open_socket(connection: bool, alarm_clock: AlarmClock):
             elif ("-newAlarm-" in data):
                 print("RECEIVED: %s" % data)
                 msg = data.replace("-newAlarm-", "")
-                title, hour, min, sec, __ = msg.split(",",4)
-                alarm_clock.new_alarm(title, [int(hour), int(min), int(sec)])
+                title, hour, min, sec, mo, di, mi, do, fr, sa , so, __ = msg.split(",",11)
+                alarm_clock.new_alarm(title, [int(hour), int(min), int(sec)], alarm_repetition=[int(mo), int(di), int(mi), int(do), int(fr), int(sa), int(so)])
             elif ("-stopAlarm-" in data):
                 alarm_clock.stop_alarms()
         except IOError:
