@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from Alarm import Alarm
 import json
 import os
+from threading import Thread
 
 class AlarmClock:
 
@@ -9,12 +10,13 @@ class AlarmClock:
         self._running = True
         self.alarm_folder = "alarms/"
         self.alarm_list = []
+        self.running_alarms = []
         self.load_alarms()
 
     def terminate(self):
         self._running = False
     
-    def new_alarm(self, title, alarm_time, alarm_date =None, alarm_repetition =None, soundfile =None, lightshow =None):
+    def new_alarm(self, title: str, alarm_time: list, alarm_date: list =None, alarm_repetition: list =None, soundfile: str =None, lightshow: str =None):
         now = datetime.now()
         if not alarm_date:
             year = int(now.strftime("%Y"))
@@ -25,6 +27,12 @@ class AlarmClock:
         new = Alarm(title, alarm_date, alarm_time, alarm_repetition, soundfile, lightshow)
         self.alarm_list.append(new)
         new.save()
+
+    def new_test_alarm(self):
+        now = datetime.now()
+        time = now + timedelta(seconds=10)
+        self.new_alarm("TestAlarm", [int(time.strftime("%H")), int(time.strftime("%M")), int(time.strftime("%S"))])
+        print("TestAlarm goes of at: ", [time.strftime("%H"), time.strftime("%M"), time.strftime("%S")])
 
     def load_alarms(self):
         alarm_paths = os.listdir(self.alarm_folder)
@@ -40,11 +48,11 @@ class AlarmClock:
     def run(self):
         while self._running:
             now = datetime.now()
-
+            
             current_year = now.strftime("%Y")
             current_month = now.strftime("%m")
             current_day = now.strftime("%d")
-            current_hour = now.strftime("%I")
+            current_hour = now.strftime("%H")
             current_min = now.strftime("%M")
             current_sec = now.strftime("%S")
 
@@ -56,4 +64,10 @@ class AlarmClock:
                                 if element.alarm_time[1] == int(current_min):
                                     if element.alarm_time[2] == int(current_sec):
                                         if not element._running:
-                                            element.go_off()
+                                            alarm_thread = Thread(target = element.go_off, args =( ), daemon = True)
+                                            alarm_thread.start()
+                                            self.running_alarms.append(element)
+
+    def stop_alarms(self):
+        for element in self.running_alarms:
+            element.stop()

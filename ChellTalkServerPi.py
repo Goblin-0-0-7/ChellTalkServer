@@ -140,7 +140,7 @@ class Fading:
                 set_blue(blue)
             time.sleep(1/self.speed)
 
-def open_socket(connection, alarm_clock):
+def open_socket(connection: bool, alarm_clock: AlarmClock):
     while True:
         if(connection == False):
             print("Waiting for connection on RFCOMM channel %d" % port)
@@ -180,6 +180,15 @@ def open_socket(connection, alarm_clock):
                 msg = data.replace("-rgbCode-", "") #removing Tag
                 red, green, blue, __ = msg.split(",",3)
                 set_color(int(red), int(green), int(blue))
+            elif ("-newTestAlarm-" in data):
+                alarm_clock.new_test_alarm()
+            elif ("-newAlarm-" in data):
+                print("RECEIVED: %s" % data)
+                msg = data.replace("-newAlarm-", "")
+                title, hour, min, sec, __ = msg.split(",",4)
+                alarm_clock.new_alarm(title, [int(hour), int(min), int(sec)])
+            elif ("-stopAlarm-" in data):
+                alarm_clock.stop_alarms()
         except IOError:
             print("Connection disconnected!")
             client_sock.close()

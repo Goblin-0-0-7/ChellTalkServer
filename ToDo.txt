@@ -11,3 +11,6 @@ go off (new thread)
 alarm clock:
 new alarm by loading json
 organises alarm obj
+
+bugs?:
+def of hour: is 0-23 or 1-24?
