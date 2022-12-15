@@ -2,6 +2,7 @@ import json
 import numpy as np
 import datetime
 from datetime import date
+from pygame import mixer
 
 class Alarm():
 
@@ -16,6 +17,8 @@ class Alarm():
         self.lightshow = lightshow
 
         self.props = self.create_dict()
+
+        mixer.init()
 
     def create_dict(self):
         props = {
@@ -61,12 +64,20 @@ class Alarm():
             next_alarm_date = today + datetime.timedelta(days=-today.weekday() + next_day, weeks=1)
             self.alarm_date = [next_alarm_date.strftime("%H"), next_alarm_date.strftime("%M"), next_alarm_date.strftime("%S")]
 
+    def play_alarm(self, soundfile: str =""):
+        if soundfile == "":
+            mixer.music.load("alarmsounds/Marc Rebillet - Your New Morning Alarm.mp3")
+        else:
+            path = "alarmsounds/" + soundfile
+            mixer.music.load(path)
+        mixer.music.set_volume(0.9)
+        mixer.music.play()
+
     def go_off(self):
         self._running = True
-        while self._running:
-            print("Beeep")
-            self.set_next_alarm()
-            #playsound('D:/Library/Documents/Projects/Coding/Beginner Python Projects/Alarm Clock/alarm.wav')
+        self.set_next_alarm()
+        self.play_alarm()
         
     def stop(self):
+        mixer.music.stop()
         self._running = False
