@@ -1,8 +1,8 @@
-date-next occurrence (update after alarm goes off)
-    with HH, MM, SS
-array-weekly reminder [0-6] zahl gibt tag an
-alarmtype (sound, lightshow)
-
+alarm: add lightshows
+send lightshow names to phone
+phone chooses
+lightshow added to alarm
+start lightshow with alarm
 
 bugs?:
 def of hour: is 0-23 or 1-24?
