@@ -1,7 +1,7 @@
 date-next occurrence (update after alarm goes off)
     with HH, MM, SS
 array-weekly reminder [0-6] zahl gibt tag an
-alarmtype (sound, lightshow (own classes, like Fading))
+alarmtype (sound, lightshow)
 
 
 bugs?:
