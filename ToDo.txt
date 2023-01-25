@@ -4,5 +4,14 @@ phone chooses
 lightshow added to alarm
 start lightshow with alarm
 
+self.frequency double in Stroboscope
+
+added comment in main
+
+motion sensor has to be own thread
+
+get pwms with led.pwms_get
+saved in LEDControl class, doesnt need thread (?)
+
 bugs?:
 def of hour: is 0-23 or 1-24?

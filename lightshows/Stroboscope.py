@@ -5,7 +5,6 @@ class Stroboscope:
     
     def __init__(self, pwms, frequency: int =20, color: str ="white"):
         self._running = True
-        self.frequency = frequency
         self.pwms = pwms
         self.pwm_red = pwms[0]
         self.pwm_green = pwms[1]

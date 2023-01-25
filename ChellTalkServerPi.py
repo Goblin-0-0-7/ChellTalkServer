@@ -15,6 +15,7 @@ red, green, blue = [0,0,0]
 
 connection = False
 
+#working with GPIO.BCM
 PIN_RED = 27
 PIN_GREEN = 22
 PIN_BLUE = 17
