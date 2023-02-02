@@ -5,24 +5,29 @@ from datetime import datetime
 
 sys.path.insert(0, "../")
 #own Classes
-import Alarm
+import Alarm #not used ?
 from AlarmClock import AlarmClock
 import LEDControl as led
 from lightshows.Fading import Fading
 from lightshows.Stroboscope import Stroboscope
+from MotionSensor import MotionSensor
+
 #default settings
 red, green, blue = [0,0,0]
 
 connection = False
+motion_sensor_flag = False
 
 #working with GPIO.BCM
 PIN_RED = 27
 PIN_GREEN = 22
 PIN_BLUE = 17
+PIN_MOTIONSENSOR_OUTPUT = 14
+
 
 pwm_frequency = 100
 
-pwms= led.initiate(PIN_RED, PIN_GREEN, PIN_BLUE, pwm_frequency)
+pwms = led.initiate(PIN_RED, PIN_GREEN, PIN_BLUE, pwm_frequency)
 
 server_sock=BluetoothSocket( RFCOMM )
 server_sock.bind(("",PORT_ANY)) #was PORT_ANY
@@ -38,7 +43,7 @@ advertise_service( server_sock, "ChellTalkServer",
                    profiles = [ SERIAL_PORT_PROFILE ]
                     )
 
-def open_socket(connection: bool, alarm_clock: AlarmClock):
+def open_socket(connection: bool, alarm_clock: AlarmClock, motion_sensor: MotionSensor):
     while True:
         if(connection == False):
             print("Waiting for connection on RFCOMM channel %d" % port)
@@ -47,27 +52,33 @@ def open_socket(connection: bool, alarm_clock: AlarmClock):
             print("Accepted connection from ", client_info)
         try:
             data = client_sock.recv(1024).decode("ASCII")
-
+            print("RECEIVED: %s" % data)
+            
             if (data == "disconnect"):
                 print("Client wanted to disconnect")
                 client_sock.close()
                 connection = False
                 led.set_color(0,0,0)
             elif ("-fade-" in data):
-                print("RECEIVED: %s" % data)
                 led.set_color(0,0,0, pwms)
                 fading = Fading(pwms)
                 fade_thread = Thread(target = fading.fade_colors, args =( ), daemon = True)
                 fade_thread.start()
+            elif ("-motionSensor-" in data):
+                if (":activate" in data):
+                    motion_sensor.activate()
+                    motion_sensor_flag = True
+                if (":deactivate" in data): #error when having the if statment as (":deactivate" in data and motion_sensor_flag)
+                    if(motion_sensor_flag):
+                        motion_sensor.deactivate()
+                        motion_sensor_flag = False
             elif ("-fadeSpeed-" in data):
-                print("RECEIVED: %s" % data)
                 msg = data.replace("-fadeSpeed-", "")
                 try:
                     fading.change_speed(int(msg))
                 except:
                     print("Couldn't change fading speed, fading probably not active.")
             elif ("-black-" in data):
-                print("RECEIVED: %s" % data)
                 try:
                     fading.terminate()
                 except:
@@ -78,26 +89,22 @@ def open_socket(connection: bool, alarm_clock: AlarmClock):
                     print("Stroboscope could not be terminated.")
                 led.set_color(0,0,0, pwms)
             elif ("-strobe-" in data):
-                print("RECEIVED: %s" % data)
                 strobe = Stroboscope(pwms)
                 strobe_thread = Thread(target = strobe.run, args =( ), daemon = True)
                 strobe_thread.start()
             elif ("-strobeFrequency-" in data):
-                print("RECEIVED: %s" % data)
                 msg = data.replace("-strobeFrequency-", "")
                 try:
                     strobe.change_frequency(int(msg))
                 except:
                     print("Couldn't change fading speed, fading probably not active.")
             elif ("-rgbCode-" in data):
-                print("RECEIVED: %s" % data)
                 msg = data.replace("-rgbCode-", "") #removing Tag
                 red, green, blue, __ = msg.split(",",3)
                 led.set_color(int(red), int(green), int(blue), pwms)
             elif ("-newTestAlarm-" in data):
                 alarm_clock.new_test_alarm()
             elif ("-newAlarm-" in data):
-                print("RECEIVED: %s" % data)
                 msg = data.replace("-newAlarm-", "")
                 title, hour, min, sec, __ = msg.split(",",4)
                 alarm_clock.new_alarm(title, [int(hour), int(min), int(sec)])
@@ -123,7 +130,10 @@ def main():
     alarm_clock = AlarmClock()
     alarm_clock_thread = Thread(target = alarm_clock.run, args =( ), daemon = True)
     alarm_clock_thread.start()
-    open_socket(connection, alarm_clock)
+    
+    motion_sensor = MotionSensor(PIN_MOTIONSENSOR_OUTPUT, pwms)
+    
+    open_socket(connection, alarm_clock, motion_sensor)
     exit()
     
 if __name__ == "__main__":
