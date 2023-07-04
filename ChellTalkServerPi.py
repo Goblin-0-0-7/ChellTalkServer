@@ -11,6 +11,7 @@ import LEDControl as led
 from lightshows.Fading import Fading
 from lightshows.Stroboscope import Stroboscope
 from MotionSensor import MotionSensor
+from CO2Sensor import CO2Sensor
 
 #default settings
 red, green, blue = [0,0,0]
@@ -130,6 +131,10 @@ def main():
     alarm_clock = AlarmClock()
     alarm_clock_thread = Thread(target = alarm_clock.run, args =( ), daemon = True)
     alarm_clock_thread.start()
+
+    co2_sensor = CO2Sensor()
+    co2_sensor_thread = Thread(target = co2_sensor.run, args= ( ), daemon = True)
+    co2_sensor_thread.start()
     
     motion_sensor = MotionSensor(PIN_MOTIONSENSOR_OUTPUT, pwms)
     

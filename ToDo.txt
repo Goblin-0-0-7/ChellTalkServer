@@ -13,5 +13,7 @@ motion sensor has to be own thread
 get pwms with led.pwms_get
 saved in LEDControl class, doesnt need thread (?)
 
+error if folders (co2Data maybe also alarms) dont exist, check if they exit, then create them
+
 bugs?:
 def of hour: is 0-23 or 1-24?
