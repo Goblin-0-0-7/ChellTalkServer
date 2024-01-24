@@ -1,5 +1,7 @@
 .venv/
 .vscode/
 .pybluez/
-.__pychache__/
-.lightshows/__pychache__/
+__pychache__/
+lightshows/__pychache__/
+alarms/
+co2Data/

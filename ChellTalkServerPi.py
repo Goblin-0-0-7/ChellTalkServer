@@ -23,7 +23,7 @@ motion_sensor_flag = False
 PIN_RED = 27
 PIN_GREEN = 22
 PIN_BLUE = 17
-PIN_MOTIONSENSOR_OUTPUT = 23
+PIN_MOTIONSENSOR_OUTPUT = 14
 
 
 pwm_frequency = 100
@@ -44,7 +44,7 @@ advertise_service( server_sock, "ChellTalkServer",
                    profiles = [ SERIAL_PORT_PROFILE ]
                     )
 
-def open_socket(connection: bool, alarm_clock: AlarmClock, motion_sensor: MotionSensor, co2_sensor: CO2Sensor):
+def open_socket(connection: bool, alarm_clock: AlarmClock, motion_sensor: MotionSensor, co2_sensor: CO2Sensor = None):
     while True:
         if(connection == False):
             print("Waiting for connection on RFCOMM channel %d" % port)
@@ -140,13 +140,18 @@ def main():
     alarm_clock_thread = Thread(target = alarm_clock.run, args =( ), daemon = True)
     alarm_clock_thread.start()
 
-    co2_sensor = CO2Sensor()
-    co2_sensor_thread = Thread(target = co2_sensor.run, args= ( ), daemon = True)
-    co2_sensor_thread.start()
+    # no co2 sensor on pi
+    # co2_sensor = CO2Sensor()
+    # co2_sensor_thread = Thread(target = co2_sensor.run, args= ( ), daemon = True)
+    # co2_sensor_thread.start()
     
     motion_sensor = MotionSensor(PIN_MOTIONSENSOR_OUTPUT, pwms)
     
-    open_socket(connection, alarm_clock, motion_sensor, co2_sensor)
+    open_socket(connection,
+                alarm_clock,
+                motion_sensor,
+                #co2_sensor
+                )
     exit()
     
 if __name__ == "__main__":

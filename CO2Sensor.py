@@ -16,7 +16,7 @@ class CO2Sensor:
 
     def run(self):
         while(self.running):
-            data = sensor.read_all() #returns { "co2": , "temperature": , "TT": , "SS": , "UhUl": }
+            data = sensor.read_all() #returns { "co2": , "temperature": , "TT": , "SS": , "UhUl": } # works with UART TW/RX (corresponds to GPIO 14/15)
             current_date = time.strftime("%Y-%m-%d")
             current_time = time.strftime("%H:%M:%S")
             data_dict = {
