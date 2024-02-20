@@ -2,7 +2,7 @@ import json
 import numpy as np
 import datetime
 from datetime import date
-from pygame import mixer
+import vlc
 
 class Alarm():
 
@@ -17,8 +17,9 @@ class Alarm():
         self.lightshow = lightshow
 
         self.props = self.create_dict()
-
-        mixer.init()
+        
+        self.vlc_instance = vlc.Instance("--input-repeat=-1", "--fullscreen")
+        self.vlc_player = self.vlc_instance.media_player_new()
 
     def create_dict(self):
         props = {
@@ -64,14 +65,16 @@ class Alarm():
             next_alarm_date = today + datetime.timedelta(days=-today.weekday() + next_day, weeks=1)
             self.alarm_date = [next_alarm_date.strftime("%H"), next_alarm_date.strftime("%M"), next_alarm_date.strftime("%S")]
 
-    def play_alarm(self, soundfile: str =""):
-        if soundfile == "":
-            mixer.music.load("alarmsounds/Marc Rebillet - Your New Morning Alarm.mp3")
-        else:
-            path = "alarmsounds/" + soundfile
-            mixer.music.load(path)
-        mixer.music.set_volume(0.9)
-        mixer.music.play()
+    def play_alarm(self, soundsource: str ="", stream: bool =False):
+        if soundsource == "":
+            media = self.vlc_instance.media_new("alarmsounds/Marc Rebillet - Your New Morning Alarm.mp3")
+        elif soundsource != "" and stream == False:
+            path = "alarmsounds/" + soundsource
+            media = self.vlc_instance.media_new(path)            
+        elif soundsource != "" and stream == True:
+            media = self.vlc_instance.media_new(soundsource)
+        self.vlc_player.set_media(media)
+        self.vlc_player.play()
 
     def go_off(self):
         self._running = True
@@ -79,5 +82,5 @@ class Alarm():
         self.play_alarm()
         
     def stop(self):
-        mixer.music.stop()
+        self.vlc_player.stop()
         self._running = False
