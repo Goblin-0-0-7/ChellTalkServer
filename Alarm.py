@@ -1,4 +1,4 @@
-import json
+import json, os
 import numpy as np
 import datetime
 from datetime import date
@@ -6,14 +6,14 @@ import vlc
 
 class Alarm():
 
-    def __init__(self, title: str, alarm_date: list, alarm_time: list, alarm_repetition: list =[0,0,0,0,0,0,0], soundfile: str =None, lightshow: str =None):
+    def __init__(self, title: str, alarm_date: list, alarm_time: list, alarm_repetition: list =[0,0,0,0,0,0,0], soundsource: str =None, lightshow: str =None):
         self._running = False
 
         self.title = title
         self.alarm_date = alarm_date
         self.alarm_time = alarm_time #array with [HH,MM,SS]
         self.alarm_repetition = alarm_repetition #array of the structure [mo,di,mi,do,fr,sa,so] alarm goes off if element at mo,di etc. is set to 1
-        self.soundfile = soundfile
+        self.soundsource = soundsource
         self.lightshow = lightshow
 
         self.props = self.create_dict()
@@ -27,7 +27,7 @@ class Alarm():
             "alarm_date": self.alarm_date,
             "alarm_time": self.alarm_time,
             "alarm_repetition": self.alarm_repetition,
-            "soundfile": self.soundfile,
+            "soundsource": self.soundsource,
             "lightshow": self.lightshow
         }
         return props
@@ -65,14 +65,15 @@ class Alarm():
             next_alarm_date = today + datetime.timedelta(days=-today.weekday() + next_day, weeks=1)
             self.alarm_date = [next_alarm_date.strftime("%H"), next_alarm_date.strftime("%M"), next_alarm_date.strftime("%S")]
 
-    def play_alarm(self, soundsource: str ="", stream: bool =False):
-        if soundsource == "":
+    def play_alarm(self):
+        if self.soundsource == "":
             media = self.vlc_instance.media_new("alarmsounds/Marc Rebillet - Your New Morning Alarm.mp3")
-        elif soundsource != "" and stream == False:
-            path = "alarmsounds/" + soundsource
-            media = self.vlc_instance.media_new(path)            
-        elif soundsource != "" and stream == True:
-            media = self.vlc_instance.media_new(soundsource)
+        elif self.soundsource != "":
+            path = "alarmsounds/" + self.soundsource
+            if os.path.isfile(path): #check if the file exists
+                media = self.vlc_instance.media_new(path)            
+            else: #else a stream is expected
+                media = self.vlc_instance.media_new(self.soundsource)
         self.vlc_player.set_media(media)
         self.vlc_player.play()
 

@@ -16,7 +16,7 @@ class AlarmClock:
     def terminate(self):
         self._running = False
     
-    def new_alarm(self, title: str, alarm_time: list, alarm_date: list =None, alarm_repetition: list =None, soundfile: str =None, lightshow: str =None):
+    def new_alarm(self, title: str, alarm_time: list, alarm_date: list =None, alarm_repetition: list =None, soundsource: str =None, lightshow: str =None):
         now = datetime.now()
         if not alarm_date:
             year = int(now.strftime("%Y"))
@@ -24,14 +24,14 @@ class AlarmClock:
             day = int(now.strftime("%d"))
             alarm_date = [year,month,day]
 
-        new = Alarm(title, alarm_date, alarm_time, alarm_repetition, soundfile, lightshow)
+        new = Alarm(title, alarm_date, alarm_time, alarm_repetition, soundsource, lightshow)
         self.alarm_list.append(new)
         new.save()
 
     def new_test_alarm(self):
         now = datetime.now()
         time = now + timedelta(seconds=10)
-        self.new_alarm("TestAlarm", [int(time.strftime("%H")), int(time.strftime("%M")), int(time.strftime("%S"))])
+        self.new_alarm("TestAlarm", [int(time.strftime("%H")), int(time.strftime("%M")), int(time.strftime("%S"))], soundsource= "https://dispatcher.rndfnk.com/br/br1/obb/mp3/mid")
         print("TestAlarm goes of at: ", [time.strftime("%H"), time.strftime("%M"), time.strftime("%S")])
 
     def load_alarms(self):
@@ -40,7 +40,7 @@ class AlarmClock:
             try:
                 with open(self.alarm_folder + element, "r") as infile:
                     alarm_json = json.load(infile)
-                    current_alarm = Alarm(alarm_json["title"], alarm_json["alarm_date"], alarm_json["alarm_time"], alarm_json["alarm_repetition"], alarm_json["soundfile"], alarm_json["lightshow"])
+                    current_alarm = Alarm(alarm_json["title"], alarm_json["alarm_date"], alarm_json["alarm_time"], alarm_json["alarm_repetition"], alarm_json["soundsource"], alarm_json["lightshow"])
                     self.alarm_list.append(current_alarm)
             except:
                 print("The file {0} is not a json, this file should not be in the alarms folder".format(element))
